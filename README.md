@@ -44,7 +44,7 @@ For more information on nsDMD, see this implementation:
 
 ## Advanced DMD Methodologies for EEG
 
-> The following list details several DMD variants, **re-ordered by their potential importance for EEG analysis**. This list is not complete, and many other specialized variants exist, but these cover the primary challenges of non-stationarity, non-linearity, noise, and multi-scale dynamics.
+> The following list details several DMD variants, **ordered by their potential importance for EEG analysis**. This list is not complete, and many other specialized variants exist, but these cover the primary challenges of non-stationarity, non-linearity, noise, and multi-scale dynamics.
 
 ### 1. Optimized Dynamic Mode Decomposition
 
@@ -55,8 +55,6 @@ For more information on nsDMD, see this implementation:
 
 * **Key Idea:** Augments standard DMD by using a larger set of **nonlinear observable functions** (e.g., polynomials, radial basis functions) instead of just the original state variables.
 * **Why It Matters for EEG:** This is the primary DMD variant for tackling **non-linear dynamics**. It allows the method to approximate the Koopman operator more effectively, enabling the capture of complex brain dynamics that linear DMD would miss.
-* **Implementation Insight:**
-    > Choosing the “right” observables is critical. A larger set increases accuracy but also computational cost and the risk of overfitting. Kernel methods or dictionary learning can help automate this selection.
 
 ### 3. Wavelet-Based (WDMD) & Multi-Resolution (mrDMD)
 
