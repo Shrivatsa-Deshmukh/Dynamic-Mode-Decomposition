@@ -76,7 +76,7 @@ For more information on nsDMD, see this implementation:
 
 ---
 
-## 🏁 Concluding Remarks
+## Concluding Remarks
 
 Each of these refinements to Dynamic Mode Decomposition addresses specific challenges encountered when analyzing complex dynamical systems. For EEG, the most critical variants are those that tackle **non-stationarity** (nsDMD, ADMD), **non-linearity** (EDMD), **noise** (Optimized DMD, TLS-DMD), and **multi-scale signals** (mrDMD, WDMD).
 
