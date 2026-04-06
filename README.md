@@ -111,7 +111,7 @@ Its approach: run Optimized DMD on each short window independently, then apply a
 
 This is precisely what's needed for resting-state EEG: not just a decomposition at each moment, but a coherent picture of which modes persist, drift, and modulate across the entire session.
 
-> NS-DMD paper (IEEE Access, 2023): https://ieeexplore.ieee.org/document/10288443
+> NS-DMD paper: https://ieeexplore.ieee.org/document/10288443
 > NS-DMD implementation: https://github.com/learning-2-learn/nsdmd
 
 ---
