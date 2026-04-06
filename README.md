@@ -1,81 +1,138 @@
-# Dynamic Mode Decomposition (DMD) and Its Variants
+# DMD for Neuroscience — Learning Notes & Insights
 
-Dynamic Mode Decomposition (DMD) is a data-driven, equation-free technique used to extract coherent spatiotemporal structures from complex datasets. It decomposes a system's evolution into a set of **dynamic modes**, each associated with a specific temporal frequency and growth/decay rate.
+A structured collection of notes and findings from exploring Dynamic Mode Decomposition (DMD) and its variants for resting-state EEG analysis. All implementations use [PyDMD](https://github.com/PyDMD/PyDMD) directly.
 
-This document provides an overview of DMD, its application to signals like EEG, and a summary of its most common and powerful variants.
-
-## Python Implementation: PyDMD
-
-A popular, full-featured Python library for DMD and its many variants.
-
-* **GitHub Repository:** `https://github.com/PyDMD/PyDMD/tree/master`
-* **Documentation:** `https://pydmd.github.io/PyDMD/dmdbase.html`
+> **PyDMD Documentation:** https://pydmd.github.io/PyDMD/dmdbase.html
 
 ---
 
-## Example Application: EEG Analysis
+## Why DMD? Advantages Over Other Decomposition Methods
 
-DMD is highly effective for analyzing complex, high-dimensional time-series data like EEG signals.
+Neural signals are high-dimensional, noisy, and fundamentally *dynamic* — they aren't just patterns in space, they are patterns that evolve in time. Most classical decomposition methods capture one of these dimensions well but not both. DMD is designed for exactly this problem.
 
-### Core Applications
-* Isolating oscillatory patterns (e.g., alpha, beta, gamma waves) linked to specific cognitive states.
-* Distinguishing between healthy and pathological brain activity by identifying abnormal modes.
+### DMD vs Common Alternatives
 
-### General Workflow
-1.  **Construct Data Matrix:** Create a matrix `X` using "snapshots" of EEG signals over time.
-2.  **Apply SVD:** Use Singular Value Decomposition (SVD) to reduce dimensionality and extract principal components.
-3.  **Build Model:** Compute the best-fit linear operator `A` that advances the system in time (i.e., $x_{k+1} \approx A x_k$).
-4.  **Analyze Modes:** Analyze the eigenvectors (DMD modes) and eigenvalues (temporal evolution) of the operator `A`.
+| Method | What It Captures | Key Limitation |
+|---|---|---|
+| **PCA / SVD** | Spatial variance across time | No temporal dynamics; treats time as a nuisance |
+| **ICA** | Statistically independent spatial components | No frequency or temporal evolution information |
+| **Fourier (FFT)** | Global frequency content | Assumes stationarity; no spatial structure |
+| **Wavelets** | Time-frequency content at fixed scales | Basis is fixed, not learned from data |
+| **NMF** | Non-negative spatial + temporal factors | No dynamical model; no frequency interpretation |
+| **DMD** | Spatiotemporal modes with frequency + growth rate | Assumes linear dynamics (addressed by variants) |
 
----
+> DMD can be thought of as performing PCA in space and power spectral analysis in time — simultaneously, in a single decomposition.
 
-## Key Challenges & Non-Stationary DMD (nsDMD)
+### What Makes DMD Uniquely Suited for Neuroscience
 
-While powerful, DMD and its variants face a major challenge in handling highly **non-stationary** and **non-linear** signals, which are characteristic of biological data like EEG.
+**1. Spatiotemporal modes in a single step**
+Each DMD mode is simultaneously a spatial pattern *and* a temporal oscillation — you get both where activity is happening and how it evolves in time, jointly. PCA gives you spatial components; FFT gives you frequencies. DMD gives you both at once.
 
-* **Optimized DMD** (detailed below) often performs better than other variants for EEG analysis due to its robustness to noise.
-* However, the underlying assumption of linear, stationary dynamics means most DMD methods only work accurately for very short time windows (often less than 5 seconds).
-* **Non-Stationary DMD (nsDMD)** is a viable option proposed to resolve these issues by allowing the dynamic modes and eigenvalues to vary in time.
+**2. Modes are oscillatory by construction**
+Every DMD mode has a well-defined frequency and growth/decay rate encoded in its eigenvalue. This maps naturally onto neural rhythms (delta, theta, alpha, beta, gamma) without imposing a fixed frequency basis on the data.
 
-For more information on nsDMD, see this implementation:
-`https://github.com/learning-2-learn/nsdmd`
+**3. Data-driven — no basis assumption**
+Unlike wavelets or Fourier methods, DMD learns its decomposition basis from the data itself. It adapts to whatever spatiotemporal structure is actually present, rather than projecting onto a predetermined set of functions.
 
----
+**4. Fits a forward dynamical model**
+DMD doesn't just decompose snapshots — it fits a linear operator *A* such that x_{k+1} ≈ Ax_k. This means you get a model of how the system *evolves*, enabling prediction, control design, and characterization of brain state stability — not just a static picture.
 
-## Advanced DMD Methodologies for EEG
+**5. Koopman operator connection**
+DMD approximates the Koopman operator — a rigorous mathematical framework for studying nonlinear systems through a linear lens. This gives DMD strong theoretical grounding for brain dynamics research, where the underlying system is nonlinear but a linear approximation over short windows is tractable.
 
-> The following list details several DMD variants, **ordered by their potential importance for EEG analysis**. This list is not complete, and many other specialized variants exist, but these cover the primary challenges of non-stationarity, non-linearity, noise, and multi-scale dynamics.
-
-### 1. Optimized Dynamic Mode Decomposition
-
-* **Key Idea:** Recasts the problem as a **rank-constrained optimization**, directly minimizing the reconstruction error rather than relying on a standard least-squares regression.
-* **Why It Matters for EEG:** This is a crucial variant for noisy data. It provides a more robust selection of modes by distributing errors more uniformly, making it a common foundation for other advanced methods (like nsDMD).
-
-### 2. Extended Dynamic Mode Decomposition (EDMD)
-
-* **Key Idea:** Augments standard DMD by using a larger set of **nonlinear observable functions** (e.g., polynomials, radial basis functions) instead of just the original state variables.
-* **Why It Matters for EEG:** This is the primary DMD variant for tackling **non-linear dynamics**. It allows the method to approximate the Koopman operator more effectively, enabling the capture of complex brain dynamics that linear DMD would miss.
-
-### 3. Wavelet-Based (WDMD) & Multi-Resolution (mrDMD)
-
-* **Key Idea (WDMD):** Merges **wavelet transforms** with DMD to analyze multi-scale data, capturing both local (high-frequency) and global (low-frequency) features.
-* **Key Idea (mrDMD):** Combines multiresolution analysis with Exact DMD to systematically decompose time-series data into **multiple levels of temporal resolution**.
-* **Why It Matters for EEG:** These methods are ideal for EEG, which is inherently multi-scale (e.g., co-existing delta, theta, alpha, beta, and gamma rhythms). They can isolate dynamics evolving on vastly different timescales, which a single DMD model might blur or miss.
-
-### 4. Adaptive Dynamic Mode Decomposition (ADMD)
-
-* **Key Idea:** Incorporates time-delay coordinates, projection methods, and filtering (e.g., DFT) to **dynamically adjust** how data is processed.
-* **Why It Matters for EEG:** This is another strong candidate for handling **non-stationary signals**. It allows the method to "track" changing dynamics and regime shifts (e.g., transitions between cognitive states) more effectively than a static method.
-
-### 5. Total Least Squares (TLS) DMD
-
-* **Key Idea:** Assumes that **all measurements are corrupted by noise**, not just the "output" data (as in standard least-squares).
-* **Why It Matters for EEG:** EEG data is universally noisy. TLS-DMD reduces the bias introduced by standard OLS-based DMD when sensor error affects all snapshots, yielding a more accurate model in high-noise environments.
+**6. Modes can grow or decay**
+Unlike FFT (which assumes constant-amplitude oscillations), DMD modes can grow or decay over time. This is more realistic for transient neural events like bursts, state transitions, or evoked responses.
 
 ---
 
-## Concluding Remarks
+## The Core Problem: DMD Breaks Down Over Long Windows
 
-Each of these refinements to Dynamic Mode Decomposition addresses specific challenges encountered when analyzing complex dynamical systems. For EEG, the most critical variants are those that tackle **non-stationarity** (nsDMD, ADMD), **non-linearity** (EDMD), **noise** (Optimized DMD, TLS-DMD), and **multi-scale signals** (mrDMD, WDMD).
+DMD gives you rich spatiotemporal information — but only reliably within a short time window, typically **less than 5 seconds** for biological data. This is because DMD assumes the underlying dynamics are linear and stationary within the window it analyzes. For resting-state EEG, this assumption quickly fails:
 
-These methods provide more nuanced, accurate, and robust representations of the underlying system dynamics—beneficial for tasks such as prediction, control design, feature extraction, and theoretical insight into complex brain processes.
+- The brain is never truly stationary — cognitive states drift continuously without discrete boundaries
+- Neural dynamics are non-linear; a single linear operator can only approximate them locally
+- The best-fit modes for one 3-second window may look completely different from the next — not because the brain changed dramatically, but because DMD has no way of knowing they represent the same underlying process
+
+**The result:** If you apply DMD window-by-window, you get a pile of disconnected local decompositions. The "alpha mode" in window 1 and the "alpha mode" in window 3 might be the same neural phenomenon drifting slightly in frequency or spatial distribution — but standard DMD treats them as unrelated. There is no mechanism to stitch them into a coherent long-horizon picture.
+
+This is the fundamental bottleneck, and it is not solved by simply choosing a better DMD variant.
+
+---
+
+## DMD Variants — Addressing Specific Limitations
+
+Each variant below addresses a specific weakness of standard DMD, but none directly solves the mode-coherence problem across time.
+
+### Overview
+
+| Variant | Key Idea | Primary Strength |
+|---|---|---|
+| **Standard DMD** | Least-squares regression on state transitions | Baseline; degrades fastest with window length |
+| **Optimized DMD** | Rank-constrained optimization; minimizes reconstruction error directly | Most noise-robust; recommended starting point |
+| **Extended DMD (EDMD)** | Augments state with nonlinear observable functions | Captures non-linear brain dynamics |
+| **Multi-Resolution DMD (mrDMD)** | Decomposes across multiple temporal resolutions | Isolates co-existing rhythms (delta through gamma) |
+| **Wavelet DMD (WDMD)** | Merges wavelet transforms with DMD | Local + global frequency features simultaneously |
+| **Total Least Squares DMD (TLS-DMD)** | Assumes noise corrupts all measurements, not just outputs | Reduces bias in universally noisy EEG |
+
+### Detailed Notes
+
+**Optimized DMD**
+Recasts DMD as a rank-constrained optimization problem, directly minimizing reconstruction error rather than relying on standard least-squares. This distributes errors more uniformly across modes, making it significantly more robust to noise. It is the recommended starting point for biological data and, notably, serves as the backbone of NS-DMD (see below).
+
+**Extended DMD (EDMD)**
+Standard DMD can only capture linear dynamics. EDMD addresses this by augmenting the state space with nonlinear observable functions (e.g., polynomials, radial basis functions), enabling a better approximation of the Koopman operator. This is the primary route for handling the non-linearity of neural signals without abandoning the DMD framework.
+
+**Multi-Resolution DMD (mrDMD)**
+Combines multiresolution analysis with exact DMD to decompose time-series data into multiple levels of temporal resolution. Well-suited for EEG, which is inherently multi-scale — slow delta rhythms and fast gamma oscillations co-exist and require different temporal resolutions to isolate cleanly.
+
+**Wavelet DMD (WDMD)**
+Merges wavelet transforms with DMD to capture both local (high-frequency, short-duration) and global (low-frequency, sustained) features simultaneously. Complementary to mrDMD — where mrDMD separates scales hierarchically, WDMD integrates them within a single decomposition.
+
+**Total Least Squares DMD (TLS-DMD)**
+Standard DMD assumes noise only affects the output snapshot, not the input. TLS-DMD relaxes this by treating all measurements as noisy — far more realistic for EEG, where every electrode measurement is corrupted by sensor noise, muscle artifacts, and environmental interference.
+
+---
+
+## Key Findings
+
+- **Optimized DMD** was the most consistently noise-robust method across resting-state conditions.
+- **Non-stationarity** — specifically the inability to track modes coherently across time — was the primary bottleneck limiting long-horizon performance across all variants, including those designed for noise and non-linearity.
+- **mrDMD and WDMD** captured co-existing frequency bands more faithfully than single-resolution methods, but remained sensitive to drifting dynamics over longer windows.
+- **Standard DMD** degraded fastest with window length, confirming its unsuitability for long-horizon resting-state decomposition.
+- Most DMD methods work accurately only for **short windows (< 5 seconds)** on biological data — a fundamental constraint regardless of variant choice.
+
+---
+
+## The Open Problem: NS-DMD
+
+Non-Stationary DMD (NS-DMD) directly addresses the mode-coherence problem that no standard variant solves.
+
+Its approach: run Optimized DMD on each short window independently, then apply a matching algorithm to identify which modes *recur and persist* across windows. Modes that appear consistently — even if drifting slightly in frequency or spatial distribution (e.g., 10Hz → 10.2Hz → 10.4Hz across consecutive windows) — are linked into a single continuous trajectory. Modes that are spurious or window-specific are discarded. The result is a small set of **global, coherent spatiotemporal modes** that describe how the system evolves over the full recording.
+
+This is precisely what's needed for resting-state EEG: not just a decomposition at each moment, but a coherent picture of which modes persist, drift, and modulate across the entire session.
+
+> NS-DMD paper (IEEE Access, 2023): https://ieeexplore.ieee.org/document/10288443
+> NS-DMD implementation: https://github.com/learning-2-learn/nsdmd
+
+---
+
+## Tools & Libraries
+
+- **[PyDMD](https://github.com/PyDMD/PyDMD)** — all DMD implementations used directly from this library
+- **[NS-DMD](https://github.com/learning-2-learn/nsdmd)** — proposed extension for non-stationary signals
+
+---
+
+## References
+
+- Kutz et al. (2016). *Dynamic Mode Decomposition: Data-Driven Modeling of Complex Systems.* SIAM.
+- Brunton et al. (2016). Extracting spatial-temporal coherent patterns in large-scale neural recordings using DMD. *Journal of Neuroscience Methods.*
+- NS-DMD (2023). *IEEE Access.* https://ieeexplore.ieee.org/document/10288443
+- PyDMD: https://github.com/PyDMD/PyDMD | Docs: https://pydmd.github.io/PyDMD/dmdbase.html
+- NS-DMD code: https://github.com/learning-2-learn/nsdmd
+
+---
+
+## Topics
+
+`eeg` `dynamic-mode-decomposition` `dmd` `resting-state` `neuroscience` `signal-processing` `koopman-operator` `non-stationarity` `spatiotemporal` `pydmd`
