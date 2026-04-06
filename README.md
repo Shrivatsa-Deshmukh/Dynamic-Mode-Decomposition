@@ -121,18 +121,5 @@ This is precisely what's needed for resting-state EEG: not just a decomposition 
 - **[PyDMD](https://github.com/PyDMD/PyDMD)** — all DMD implementations used directly from this library
 - **[NS-DMD](https://github.com/learning-2-learn/nsdmd)** — proposed extension for non-stationary signals
 
----
 
-## References
 
-- Kutz et al. (2016). *Dynamic Mode Decomposition: Data-Driven Modeling of Complex Systems.* SIAM.
-- Brunton et al. (2016). Extracting spatial-temporal coherent patterns in large-scale neural recordings using DMD. *Journal of Neuroscience Methods.*
-- NS-DMD (2023). *IEEE Access.* https://ieeexplore.ieee.org/document/10288443
-- PyDMD: https://github.com/PyDMD/PyDMD | Docs: https://pydmd.github.io/PyDMD/dmdbase.html
-- NS-DMD code: https://github.com/learning-2-learn/nsdmd
-
----
-
-## Topics
-
-`eeg` `dynamic-mode-decomposition` `dmd` `resting-state` `neuroscience` `signal-processing` `koopman-operator` `non-stationarity` `spatiotemporal` `pydmd`
