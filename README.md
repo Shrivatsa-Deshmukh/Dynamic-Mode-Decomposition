@@ -1,4 +1,4 @@
-# DMD for Neuroscience — Learning Notes & Insights
+# dmd-for-neuroscience
 
 A structured collection of notes and findings from exploring Dynamic Mode Decomposition (DMD) and its variants for resting-state EEG analysis. All implementations use [PyDMD](https://github.com/PyDMD/PyDMD) directly.
 
