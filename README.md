@@ -77,7 +77,7 @@ Each variant below addresses a specific weakness of standard DMD, but none direc
 ### Detailed Notes
 
 **Optimized DMD**
-Recasts DMD as a rank-constrained optimization problem, directly minimizing reconstruction error rather than relying on standard least-squares. This distributes errors more uniformly across modes, making it significantly more robust to noise. It is the recommended starting point for biological data and, notably, serves as the backbone of NS-DMD (see below).
+Recasts DMD as a rank-constrained optimization problem, directly minimizing reconstruction error rather than relying on standard least-squares. This distributes errors more uniformly across modes, making it significantly more robust to noise. It is the recommended starting point for neural data and, notably, serves as the backbone of NS-DMD (see below).
 
 **Extended DMD (EDMD)**
 Standard DMD can only capture linear dynamics. EDMD addresses this by augmenting the state space with nonlinear observable functions (e.g., polynomials, radial basis functions), enabling a better approximation of the Koopman operator. This is the primary route for handling the non-linearity of neural signals without abandoning the DMD framework.
@@ -89,7 +89,7 @@ Combines multiresolution analysis with exact DMD to decompose time-series data i
 Merges wavelet transforms with DMD to capture both local (high-frequency, short-duration) and global (low-frequency, sustained) features simultaneously. Complementary to mrDMD — where mrDMD separates scales hierarchically, WDMD integrates them within a single decomposition.
 
 **Total Least Squares DMD (TLS-DMD)**
-Standard DMD assumes noise only affects the output snapshot, not the input. TLS-DMD relaxes this by treating all measurements as noisy — far more realistic for EEG, where every electrode measurement is corrupted by sensor noise, muscle artifacts, and environmental interference.
+Standard DMD assumes noise only affects the output snapshot, not the input. TLS-DMD relaxes this by treating all measurements as noisy — far more realistic for EEG, where every electrode measurement is corrupted by sensor noise, artifacts, and environmental interference.
 
 ---
 
@@ -99,7 +99,7 @@ Standard DMD assumes noise only affects the output snapshot, not the input. TLS-
 - **Non-stationarity** — specifically the inability to track modes coherently across time — was the primary bottleneck limiting long-horizon performance across all variants, including those designed for noise and non-linearity.
 - **mrDMD and WDMD** captured co-existing frequency bands more faithfully than single-resolution methods, but remained sensitive to drifting dynamics over longer windows.
 - **Standard DMD** degraded fastest with window length, confirming its unsuitability for long-horizon resting-state decomposition.
-- Most DMD methods work accurately only for **short windows (< 5 seconds)** on biological data — a fundamental constraint regardless of variant choice.
+- Most DMD methods work accurately only for **short windows (< 5 seconds)** on neural data — a fundamental constraint regardless of variant choice.
 
 ---
 
@@ -107,19 +107,18 @@ Standard DMD assumes noise only affects the output snapshot, not the input. TLS-
 
 Non-Stationary DMD (NS-DMD) directly addresses the mode-coherence problem that no standard variant solves.
 
-Its approach: run Optimized DMD on each short window independently, then apply a matching algorithm to identify which modes *recur and persist* across windows. Modes that appear consistently — even if drifting slightly in frequency or spatial distribution (e.g., 10Hz → 10.2Hz → 10.4Hz across consecutive windows) — are linked into a single continuous trajectory. Modes that are spurious or window-specific are discarded. The result is a small set of **global, coherent spatiotemporal modes** that describe how the system evolves over the full recording.
+Its approach: run Optimized DMD on each short window independently, then apply a matching algorithm to identify which modes *recur and persist* across windows. Modes that appear consistently — even if drifting slightly in frequency or spatial distribution (e.g., 10.0Hz → 10.25Hz → 10.5Hz across consecutive windows) — are linked into a single continuous trajectory. Modes that are spurious or window-specific are discarded. The result is a small set of **global, coherent spatiotemporal modes** that describe how the system evolves over the full recording.
 
 This is precisely what's needed for resting-state EEG: not just a decomposition at each moment, but a coherent picture of which modes persist, drift, and modulate across the entire session.
 
 > NS-DMD paper: https://ieeexplore.ieee.org/document/10288443
-> NS-DMD implementation: https://github.com/learning-2-learn/nsdmd
 
 ---
 
 ## Tools & Libraries
 
-- **[PyDMD](https://github.com/PyDMD/PyDMD)** — all DMD implementations used directly from this library
-- **[NS-DMD](https://github.com/learning-2-learn/nsdmd)** — proposed extension for non-stationary signals
+- **[PyDMD](https://github.com/PyDMD/PyDMD)** — all DMD implementations 
+- **[NS-DMD](https://github.com/learning-2-learn/nsdmd)** — extension for non-stationary signals
 
 
 
